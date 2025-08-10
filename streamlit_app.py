@@ -1,28 +1,50 @@
 import streamlit as st
 import requests
 
-st.title("🚗 RC Car Remote")
+# === CONFIG ===
+CAR_API_URL = "http://192.168.4.1:5000"  # Change to your RC car's API endpoint
 
-# Replace with your RC car's control API or IP address
-BASE_URL = "http://192.168.4.1"  # Example: ESP8266/ESP32 server
+# === FUNCTION TO SEND COMMANDS ===
+def send_command(command):
+    try:
+        response = requests.get(f"{CAR_API_URL}/{command}")
+        if response.status_code == 200:
+            st.success(f"Sent: {command}")
+        else:
+            st.error(f"Failed: {command} (status {response.status_code})")
+    except Exception as e:
+        st.error(f"Error: {e}")
 
-# Buttons for control
-col1, col2, col3 = st.columns(3)
+# === PAGE SETUP ===
+st.set_page_config(page_title="RC Car Remote", page_icon="🚗", layout="centered")
 
-with col1:
-    if st.button("⬆ Forward"):
-        requests.get(f"{BASE_URL}/forward")
+st.title("🚗 RC Car Remote Control")
+st.write("Click buttons below to control your RC car.")
+
+# === BUTTON CONTROLS ===
+col1, col2, col3 = st.columns([1, 1, 1])
 
 with col2:
-    if st.button("⬅ Left"):
-        requests.get(f"{BASE_URL}/left")
+    if st.button("⬆️ Forward"):
+        send_command("forward")
 
-    if st.button("Stop 🛑"):
-        requests.get(f"{BASE_URL}/stop")
-
-    if st.button("➡ Right"):
-        requests.get(f"{BASE_URL}/right")
+with col1:
+    if st.button("⬅️ Left"):
+        send_command("left")
 
 with col3:
-    if st.button("⬇ Backward"):
-        requests.get(f"{BASE_URL}/backward")
+    if st.button("➡️ Right"):
+        send_command("right")
+
+with col2:
+    if st.button("⬇️ Backward"):
+        send_command("backward")
+
+# Stop button (full width)
+if st.button("⏹ Stop"):
+    send_command("stop")
+
+# Optional: Speed slider
+speed = st.slider("Speed", min_value=0, max_value=100, value=50)
+if st.button("Set Speed"):
+    send_command(f"speed/{speed}")
